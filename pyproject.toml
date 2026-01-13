@@ -1,7 +1,35 @@
 [project]
 name = "vyvchai"
 version = "0.1.0"
-description = "Add your description here"
+description = "VyvchAI | Mriia Track AI Tutor for Lapathon 2026"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+  # Core
+  "fastapi",
+  "langgraph",
+  "langchain",
+  "polars",
+  "qdrant-client",
+
+  # ML
+  "transformers",
+  "torch",
+  "sympy",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "black",
+  "ruff",
+  "mypy",
+]
+
+[tool.black]
+line-length = 88
+target-version = ["py313"]
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "I", "B"]
