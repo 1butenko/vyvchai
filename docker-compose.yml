@@ -1,23 +1,37 @@
-version: "3.9"
+version: '3.8'
 
 services:
-  api:
+  # Phoenix UI for tracing
+  phoenix:
+    image: arizephoenix/phoenix:latest
+    ports:
+      - "6006:6006" # Expose Phoenix UI on localhost:6006
+    environment:
+      - PHOENIX_PORT=6006
+
+  # Your AI Tutor application
+  ai-tutor:
     build: .
-    ports:
-      - "8000:8000"
-    env_file:
-      - .env
-    volumes:
-      - ./src:/app
     depends_on:
-      - qdrant
-
-  qdrant:
-    image: qdrant/qdrant:v1.7.4
-    ports:
-      - "6333:6333"
+      - phoenix
     volumes:
-      - qdrant_data:/qdrant/storage
+      - ./data:/app/data # Mount local data folder into the container
+    environment:
+      # --- Tracing Configuration ---
+      - PHOENIX_HOST=phoenix
+      - PHOENIX_PORT=6006
+      - LANGCHAIN_TRACING_V2=true
+      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://phoenix:6006/v1/traces
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://phoenix:6006/v1/traces
+      
+      # --- Google API Key ---
+      # Make sure to create a .env file with your GOOGLE_API_KEY
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      
+      # --- Data Path ---
+      - DATA_PATH=/app/data
+    command: ["python", "main.py"]
 
-volumes:
-  qdrant_data:
+networks:
+  default:
+    driver: bridge
