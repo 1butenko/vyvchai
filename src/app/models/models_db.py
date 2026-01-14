@@ -120,7 +120,6 @@ class User(Base):
     password = Column(String, nullable=False)
     type = Column(String)
 
-<<<<<<< HEAD
     __mapper_args__ = {"polymorphic_identity": "user", "polymorphic_on": type}
 
 
@@ -217,5 +216,3 @@ class Question(Base):
     answer = Column(String, nullable=False)
     possible_answers = Column(ARRAY(String))
     test_id = Column(String, ForeignKey('tests.id'))
-
->>>>>>> restore/cherry-568a2c0

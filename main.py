@@ -1,4 +1,5 @@
 import os
+
 import phoenix as px
 from dotenv import load_dotenv
 from langchain_community.callbacks import get_openai_callback
@@ -10,6 +11,7 @@ load_dotenv()
 # Import the compiled agent app from your existing agent file
 # We assume the agent.py file contains the compiled `app`
 from app.agent import app
+
 
 def main():
     """
@@ -23,15 +25,19 @@ def main():
 
     # Simulate an initial state for the agent
     initial_state = {
-        "messages": [HumanMessage(content="Розкажи мені про квадратні рівняння та дай кілька завдань.")],
+        "messages": [
+            HumanMessage(
+                content="Розкажи мені про квадратні рівняння та дай кілька завдань."
+            )
+        ],
         "student_id": 123,
         "grade": 8,
-        "global_discipline_id": 72, # Algebra
+        "global_discipline_id": 72,  # Algebra
     }
 
     # 2. Run the agent and evaluate token usage
     print("\n🤖 Running the AI Tutor agent...")
-    
+
     total_tokens = 0
     total_cost = 0
 
@@ -40,7 +46,7 @@ def main():
         for i, step in enumerate(app.stream(initial_state)):
             print(f"\n--- Iteration {i+1} ---")
             print(step)
-        
+
         # After the run, the callback will have the token and cost info
         total_tokens = cb.total_tokens
         total_cost = cb.total_cost
@@ -50,8 +56,10 @@ def main():
     print(f"Total Tokens Used: {total_tokens}")
     print(f"Estimated Cost (USD): ${total_cost:.6f}")
     print("------------------------------------")
-    
-    print("\n✅ Agent run complete. Check Phoenix UI for detailed traces at http://localhost:6006")
+
+    print(
+        "\n✅ Agent run complete. Check Phoenix UI for detailed traces at http://localhost:6006"
+    )
     print("Press Ctrl+C to exit.")
 
     # Keep the script running to allow Phoenix to send all data
@@ -61,16 +69,23 @@ def main():
     except KeyboardInterrupt:
         print("\nExiting.")
 
+
 if __name__ == "__main__":
     # Ensure all required dummy data exists before running
     # This is a placeholder for a real data check
-    if not all([
-        os.path.exists("data/toc_for_hackathon_with_subtopics.parquet"),
-        os.path.exists("data/benchmark_scores.parquet"),
-        os.path.exists("data/benchmark_absences.parquet"),
-        os.path.exists("data/pages_for_hackathon (gemini).parquet")
-    ]):
-        print("ERROR: One or more required data files are missing in the 'data' directory.")
-        print("Please run the individual node files (`topic_router_node.py`, etc.) to create dummy data first.")
+    if not all(
+        [
+            os.path.exists("data/toc_for_hackathon_with_subtopics.parquet"),
+            os.path.exists("data/benchmark_scores.parquet"),
+            os.path.exists("data/benchmark_absences.parquet"),
+            os.path.exists("data/pages_for_hackathon (gemini).parquet"),
+        ]
+    ):
+        print(
+            "ERROR: One or more required data files are missing in the 'data' directory."
+        )
+        print(
+            "Please run the individual node files (`topic_router_node.py`, etc.) to create dummy data first."
+        )
     else:
         main()

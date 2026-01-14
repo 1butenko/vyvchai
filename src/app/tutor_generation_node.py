@@ -1,6 +1,6 @@
-import os
 import json
-from typing import TypedDict, List, Optional
+import os
+from typing import List, TypedDict
 
 from langchain_core.messages import HumanMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -18,6 +18,7 @@ else:
     VECTOR_STORE = None
     print("WARNING: GOOGLE_API_KEY not set. Generation node will not work.")
 
+
 # --- Data Structures for Structured Output ---
 class Exercise(TypedDict):
     предмет: str
@@ -27,9 +28,11 @@ class Exercise(TypedDict):
     task_text: str
     answer_key: str
 
+
 class GeneratedMaterial(TypedDict):
     summary: str
     exercises: List[Exercise]
+
 
 # --- Prompt Engineering ---
 PROMPT_TEMPLATE = """
@@ -72,6 +75,7 @@ PROMPT_TEMPLATE = """
 ```
 """
 
+
 # --- The Generation Node ---
 def tutor_generation_node(state: dict) -> dict:
     """
@@ -79,56 +83,69 @@ def tutor_generation_node(state: dict) -> dict:
     """
     print("---NODE: TUTOR GENERATION (LC-RAG)---")
     if GENERATOR_LLM is None or VECTOR_STORE is None:
-        return {"generated_material": None, "messages": [HumanMessage(content="Помилка: Генератор не ініціалізовано.")]}
+        return {
+            "generated_material": None,
+            "messages": [HumanMessage(content="Помилка: Генератор не ініціалізовано.")],
+        }
 
     # --- 1. Scoped Retrieval ---
     user_query = state["messages"][-1].content
     topic_details = state.get("topic_details")
-    
-    search_kwargs = {"k": 5} # Retrieve more context for generation
+
+    search_kwargs = {"k": 5}  # Retrieve more context for generation
     if topic_details:
         start_page = topic_details.get("topic_start_page")
         end_page = topic_details.get("topic_end_page")
         if start_page is not None and end_page is not None:
             print(f"Retrieving context within page range: {start_page}-{end_page}")
-            search_kwargs["filter"] = {"book_page_number": {"$gte": start_page, "$lte": end_page}}
+            search_kwargs["filter"] = {
+                "book_page_number": {"$gte": start_page, "$lte": end_page}
+            }
 
     results = VECTOR_STORE.similarity_search(user_query, **search_kwargs)
-    context_str = "\n\n".join([f"Джерело: стор. {doc.metadata.get('book_page_number', 'N/A')}\nТекст: {doc.page_content}" for doc in results])
+    context_str = "\n\n".join(
+        [
+            f"Джерело: стор. {doc.metadata.get('book_page_number', 'N/A')}\nТекст: {doc.page_content}"
+            for doc in results
+        ]
+    )
 
     # --- 2. Prompt Engineering (Adaptive Instructions) ---
     custom_instructions = []
     if state.get("requires_recap"):
-        custom_instructions.append("УВАГА: Учень пропустив цю тему. Почни конспект з короткого, але змістовного огляду ключових понять.")
-    
+        custom_instructions.append(
+            "УВАГА: Учень пропустив цю тему. Почни конспект з короткого, але змістовного огляду ключових понять."
+        )
+
     if state.get("enable_scaffolding"):
         custom_instructions.append(
             "УВАГА: Учень має низький рівень майстерності. Використовуй Socratic Tutoring та Graduated Hinting. "
             "У конспекті пояснюй складні речі простими словами, використовуй аналогії. "
             "Не давай прямих відповідей на складні запитання, а став навідні запитання, щоб учень міг сам дійти до висновку."
         )
-    
+
     # --- 3. Generate Material ---
     final_prompt = PROMPT_TEMPLATE.format(
         custom_instructions="\n".join(custom_instructions),
         context=context_str,
-        user_query=user_query
+        user_query=user_query,
     )
-    
+
     try:
         response = GENERATOR_LLM.invoke([HumanMessage(content=final_prompt)])
         generated_material = json.loads(response.content)
-        
+
         # We can now pass the generated tasks to the solver/validator node
         return {
             "generated_material": generated_material,
-            "generated_tasks": generated_material.get("exercises", [])
+            "generated_tasks": generated_material.get("exercises", []),
         }
     except (json.JSONDecodeError, Exception) as e:
         print(f"ERROR: Failed to generate or parse material. {e}")
         return {"generated_material": None, "generated_tasks": []}
 
+
 # --- Example Usage ---
-if __name__ == '__main__':
+if __name__ == "__main__":
     # This example requires dummy data to be created by other node files
     pass

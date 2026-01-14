@@ -1,6 +1,4 @@
 import os
-import pandas as pd
-from typing import Optional
 
 # Assuming vector_store is created and available.
 from .vector_store import create_vector_store
@@ -40,7 +38,7 @@ def retrieve_context_node(state: dict) -> dict:
 
     # Perform the similarity search with the filter
     results = VECTOR_STORE.similarity_search(user_query, **search_kwargs)
-    
+
     # Format the results
     context_parts = []
     for doc in results:
@@ -49,12 +47,17 @@ def retrieve_context_node(state: dict) -> dict:
         topic_str = f"Тема: {metadata.get('topic_title', 'N/A')}"
         text_str = f"Текст: {doc.page_content}"
         context_parts.append(f"{source_str}, {topic_str}\n{text_str}")
-        
-    formatted_context = "\n\n".join(context_parts) if context_parts else "На жаль, релевантної інформації в підручнику не знайдено."
-    
+
+    formatted_context = (
+        "\n\n".join(context_parts)
+        if context_parts
+        else "На жаль, релевантної інформації в підручнику не знайдено."
+    )
+
     print(f"Retrieved context:\n{formatted_context}")
     return {"context": formatted_context}
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # Example usage requires GOOGLE_API_KEY and dummy data
     pass

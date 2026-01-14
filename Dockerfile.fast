@@ -1,0 +1,67 @@
+# Alternative Dockerfile using PyTorch base image for faster builds
+# Use this instead of the regular Dockerfile for even faster builds
+FROM pytorch/pytorch:2.1.2-cuda11.8-cudnn8-runtime
+
+# PyTorch image comes with Python 3.10, update to 3.13
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    && add-apt-repository ppa:deadsnakes/ppa \
+    && apt-get update \
+    && apt-get install -y python3.13 python3.13-dev python3.13-distutils \
+    && update-alternatives --install /usr/bin/python python /usr/bin/python3.13 1 \
+    && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.13 1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+
+# Install core dependencies (excluding PyTorch since it's already in base image)
+RUN pip install --no-cache-dir \
+    fastapi \
+    langgraph \
+    langchain \
+    pydantic \
+    pydantic-settings \
+    sqlalchemy \
+    httpx \
+    tenacity \
+    openai \
+    redis \
+    structlog \
+    qdrant-client \
+    polars \
+    arize-phoenix \
+    opentelemetry-api \
+    phoenix \
+    transformers \
+    sympy \
+    pyparsing
+
+# Install the project itself
+RUN pip install --no-cache-dir -e .
+
+# Copy the source code (this changes most frequently, so put it last)
+COPY . .
+
+# Create data directory
+RUN mkdir -p /app/data
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV DATA_PATH=/app/data
+
+# Expose port for FastAPI
+EXPOSE 8000
+
+# Default command
+CMD ["uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

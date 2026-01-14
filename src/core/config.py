@@ -1,14 +1,17 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List, Optional
 
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pyparsing import lru_cache
 
-class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore")
 
-    APP_NAME : str = "Vyvchai"
-    APP_VERSION : str = "0.1.0"
-    DEBUG : bool = False
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
+    )
+
+    APP_NAME: str = "Vyvchai"
+    APP_VERSION: str = "0.1.0"
+    DEBUG: bool = False
     ENVIRONMENT: str = "development"
 
     API_V1_PREFIX: str = "/api/v1"
@@ -28,6 +31,8 @@ class Settings(BaseSettings):
     QDRANT_COLLECTION: str = "textbook_chunks"
 
     LAPA_LLM_URL: str = "##LAPA_LLM_URL##"
+    OPENAI_API_KEY: Optional[str] = None
+    FALLBACK_TO_CLOUD: bool = False
 
     PHOENIX_ENABLED: bool = True
     PHOENIX_URL: str = "http://localhost:6006"
@@ -41,6 +46,7 @@ class Settings(BaseSettings):
     ENABLE_BENCHMARK_ENDPOINT: bool = True
     MAX_QUIZ_QUESTIONS: int = 12
     MAX_REGENERATION_ATTEMPTS: int = 3
+
 
 @lru_cache()
 def get_settings() -> Settings:

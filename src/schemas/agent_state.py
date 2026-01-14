@@ -14,6 +14,7 @@ class AgentState(TypedDict):
     # Req context
     request_id: str
     class_id: str
+    tenant_id: str
     student_id: str
     teacher_id: str
     grade: int
@@ -36,9 +37,13 @@ class AgentState(TypedDict):
     validation_passed: bool
     regeneration_count: int
 
+    # Solved problems
+    solved_problems: List[Dict]
+
     # Grading & recommendations
     student_answers: Optional[List[str]]
     grading_result: Optional[Dict]
+    student_analysis: Optional[Dict]
     recommendations: Optional[Dict]
 
     # Telemetry

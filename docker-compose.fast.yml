@@ -1,0 +1,24 @@
+# Fast build override for docker-compose.yml
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.fast.yml up --build
+
+services:
+  ai-tutor:
+    # Use the fast Dockerfile with PyTorch pre-installed
+    build:
+      context: .
+      dockerfile: Dockerfile.fast
+
+    # Add GPU support if available (optional)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+    # Increase memory limit for ML workloads
+    environment:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO
+    command: ["uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

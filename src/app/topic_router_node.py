@@ -1,10 +1,11 @@
-import os
-import pandas as pd
-import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
 import ast
-from typing import TypedDict, List, Optional
+import os
+from typing import List, Optional, TypedDict
+
+import numpy as np
+import pandas as pd
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from sklearn.metrics.pairwise import cosine_similarity
 
 # --- Pre-load data and models for efficiency ---
 
@@ -19,14 +20,17 @@ try:
     print("TOC data loaded successfully.")
 except FileNotFoundError:
     print(f"ERROR: TOC file not found at {TOC_FILE_PATH}. The router will not work.")
-    TOC_DF = pd.DataFrame() # Empty dataframe to prevent crashes
+    TOC_DF = pd.DataFrame()  # Empty dataframe to prevent crashes
 
 # Initialize the embedding model once
 if os.environ.get("GOOGLE_API_KEY"):
     EMBEDDING_MODEL = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
 else:
-    print("WARNING: GOOGLE_API_KEY not set. Topic router will not be able to embed queries.")
+    print(
+        "WARNING: GOOGLE_API_KEY not set. Topic router will not be able to embed queries."
+    )
     EMBEDDING_MODEL = None
+
 
 # --- Define State structures ---
 # This helps with type hinting and clarity
@@ -36,9 +40,11 @@ class TopicDetails(TypedDict):
     topic_start_page: int
     topic_end_page: int
 
+
 class RouterState(TypedDict):
     """Input state for the router node."""
-    messages: List[object] # Using generic object for simplicity
+
+    messages: List[object]  # Using generic object for simplicity
     grade: int
     global_discipline_id: int
     # The output of this node will be added to the main AgentState
@@ -46,6 +52,7 @@ class RouterState(TypedDict):
 
 
 # --- The Router Node ---
+
 
 def topic_router_node(state: RouterState) -> dict:
     """
@@ -57,18 +64,19 @@ def topic_router_node(state: RouterState) -> dict:
         print("ERROR: Node cannot operate. Missing data or model.")
         return {"topic_details": None}
 
-    user_query = state['messages'][-1].content
-    grade = state['grade']
-    discipline_id = state['global_discipline_id']
+    user_query = state["messages"][-1].content
+    grade = state["grade"]
+    discipline_id = state["global_discipline_id"]
 
     # 1. Filter the DataFrame based on grade and discipline
     filtered_df = TOC_DF[
-        (TOC_DF['grade'] == grade) & 
-        (TOC_DF['global_discipline_id'] == discipline_id)
+        (TOC_DF["grade"] == grade) & (TOC_DF["global_discipline_id"] == discipline_id)
     ].copy()
 
     if filtered_df.empty:
-        print(f"WARNING: No topics found for grade={grade} and discipline={discipline_id}.")
+        print(
+            f"WARNING: No topics found for grade={grade} and discipline={discipline_id}."
+        )
         return {"topic_details": None}
 
     # 2. Get embeddings for the filtered topics
@@ -81,10 +89,10 @@ def topic_router_node(state: RouterState) -> dict:
     # 4. Perform semantic search
     similarities = cosine_similarity([query_embedding], filtered_embeddings)[0]
     best_match_index_in_filtered = np.argmax(similarities)
-    
+
     # Get the original index from the filtered DataFrame
     original_index = filtered_df.index[best_match_index_in_filtered]
-    
+
     # 5. Extract the details of the winning topic
     best_topic_series = TOC_DF.loc[original_index]
 
@@ -101,13 +109,15 @@ def topic_router_node(state: RouterState) -> dict:
         "topic_start_page": best_topic_series.get("topic_start_page"),
         "topic_end_page": best_topic_series.get("topic_end_page"),
     }
-    
-    print(f"Query '{user_query}' routed to topic: '{topic_details['selected_topic_title']}'")
+
+    print(
+        f"Query '{user_query}' routed to topic: '{topic_details['selected_topic_title']}'"
+    )
     return {"topic_details": topic_details}
 
 
 # --- Example Usage ---
-if __name__ == '__main__':
+if __name__ == "__main__":
     from langchain_core.messages import HumanMessage
 
     # Create dummy data for a full run
@@ -115,20 +125,30 @@ if __name__ == '__main__':
         os.makedirs(DATA_PATH)
 
     # Dummy TOC data
-    dummy_toc_df = pd.DataFrame({
-        "topic_title": ["Вступ до Алгебри", "Рівняння", "Історія України: Визвольна війна"],
-        "grade": [8, 8, 9],
-        "global_discipline_id": [72, 72, 107],
-        "topic_embedding": [np.random.rand(768) for _ in range(3)],
-        "subtopics": ["['Змінні', 'Константи']", "['Лінійні', 'Квадратні']", "['Передумови', 'Наслідки']"],
-        "topic_start_page": [5, 20, 150],
-        "topic_end_page": [19, 45, 175],
-    })
+    dummy_toc_df = pd.DataFrame(
+        {
+            "topic_title": [
+                "Вступ до Алгебри",
+                "Рівняння",
+                "Історія України: Визвольна війна",
+            ],
+            "grade": [8, 8, 9],
+            "global_discipline_id": [72, 72, 107],
+            "topic_embedding": [np.random.rand(768) for _ in range(3)],
+            "subtopics": [
+                "['Змінні', 'Константи']",
+                "['Лінійні', 'Квадратні']",
+                "['Передумови', 'Наслідки']",
+            ],
+            "topic_start_page": [5, 20, 150],
+            "topic_end_page": [19, 45, 175],
+        }
+    )
     dummy_toc_df.to_parquet(TOC_FILE_PATH)
 
     if os.environ.get("GOOGLE_API_KEY"):
         print("\n--- Testing Topic Router Node ---")
-        
+
         # Reload the router's data with the dummy file
         TOC_DF = pd.read_parquet(TOC_FILE_PATH)
         TOC_EMBEDDINGS = np.vstack(TOC_DF["topic_embedding"].values)
@@ -138,15 +158,16 @@ if __name__ == '__main__':
             "messages": [HumanMessage(content="Як розв'язувати квадратні рівняння?")],
             "grade": 8,
             "global_discipline_id": 72,
-            "topic_details": None # Initially empty
+            "topic_details": None,  # Initially empty
         }
-        
+
         router_output = topic_router_node(initial_state)
-        
+
         print("\n--- Router Output ---")
         import json
+
         print(json.dumps(router_output, indent=2, ensure_ascii=False))
-        
+
     else:
         print("\nSkipping router test: GOOGLE_API_KEY is not set.")
 

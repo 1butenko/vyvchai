@@ -1,5 +1,6 @@
 from typing import TypedDict, List, Dict
 
+
 class StudentProfile(TypedDict):
     student_id: str
     grade: int

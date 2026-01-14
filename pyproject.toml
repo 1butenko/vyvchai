@@ -26,6 +26,11 @@ dependencies = [
   "opentelemetry-exporter-prometheus>=0.60b1",
   "opentelemetry-instrumentation-fastapi>=0.60b1",
   "opentelemetry-instrumentation-sqlalchemy>=0.60b1",
+  # LLM dependencies
+  "httpx",
+  "tenacity",
+  "openai",
+  "redis",
 ]
 
 [project.optional-dependencies]
