@@ -1,5 +1,6 @@
 # Ignore all content in the data directory
 data/*
 
-# But keep the .gitkeep file
-!data/.gitkeep
+# Virtual environments
+.venv
+.vscode
