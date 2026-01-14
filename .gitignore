@@ -1,10 +1,6 @@
-# Python-generated files
-__pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
+# Ignore all content in the data directory
+data/*
 
 # Virtual environments
 .venv
+.vscode

@@ -1,0 +1,17 @@
+fastapi
+langgraph
+langchain
+polars
+qdrant-client
+transformers
+torch
+sympy
+pyparsing>=3.3.1
+sqlalchemy>=2.0.45
+
+[dev]
+pytest
+black
+ruff
+mypy
+pre-commit
