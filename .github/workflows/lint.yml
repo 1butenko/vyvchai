@@ -1,24 +1,55 @@
-name: Lint
+vname: Lint Code
 
 on:
-  pull_request:
-    branches: [main, develop]
   push:
-    branches: [main, develop]
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
 
 jobs:
-  lint:
+  lint-python:
+    name: Lint Python Code
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
-
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
-
-      - name: Lint placeholder
+          python-version: '3.13'
+          cache: 'pip'
+      
+      - name: Install dependencies
         run: |
-          echo "Lint checks will be added later"
+          python -m pip install --upgrade pip
+          pip install black ruff mypy
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      
+      - name: Run Black (formatting check)
+        run: |
+          black --check src/ tests/
+      
+      - name: Run Ruff (linting)
+        run: |
+          ruff check src/ tests/
+      
+      - name: Run MyPy (type checking)
+        run: |
+          mypy src/
+        continue-on-error: true
+
+  lint-markdown:
+    name: Lint Markdown Files
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Lint Markdown
+        uses: DavidAnson/markdownlint-cli2-action@v14
+        with:
+          globs: '**/*.md'
+        continue-on-error: true
