@@ -1,0 +1,30 @@
+backend:
+  - 'src/**/*.py'
+  - 'src/api/**/*'
+
+frontend:
+  - 'src/ui/**/*'
+
+ml:
+  - 'src/rag/**/*'
+  - 'src/generation/**/*'
+  - 'src/solver/**/*'
+  - 'src/llm/**/*'
+
+devops:
+  - 'docker-compose*.yml'
+  - 'Dockerfile*'
+  - '.github/**/*'
+  - 'scripts/**/*'
+
+documentation:
+  - 'docs/**/*'
+  - '**/*.md'
+
+tests:
+  - 'tests/**/*'
+
+dependencies:
+  - 'requirements.txt'
+  - 'pyproject.toml'
+  - 'poetry.lock'
