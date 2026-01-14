@@ -1,18 +1,18 @@
+# Base image
 FROM python:3.11-slim
 
+# Set the working directory
 WORKDIR /app
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+# Install dependencies
+# Added arize-phoenix and opentelemetry-exporter-otlp for tracing
+RUN pip install pandas pyarrow langgraph fastapi scikit-learn langchain langchain-google-genai arize-phoenix opentelemetry-exporter-otlp
 
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    curl \
- && rm -rf /var/lib/apt/lists/*
+# Copy application code
+COPY ./src/app /app
 
-COPY backend/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Set the environment variable for the data path
+ENV DATA_PATH=/app/data
 
-COPY src /app
-
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# The command to run the application will be in docker-compose.yml
+# For example: CMD ["python", "main.py"]
