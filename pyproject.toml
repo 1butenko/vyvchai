@@ -3,7 +3,7 @@ name = "vyvchai"
 version = "0.1.0"
 description = "VyvchAI | Mriia Track AI Tutor for Lapathon 2026"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
   # Core
   "fastapi",
@@ -31,6 +31,12 @@ dependencies = [
   "tenacity",
   "openai",
   "redis",
+  "psycopg2-binary",
+  "asyncpg",
+
+  "uvicorn",
+  "langchain-google-genai",
+  "langchain-openai",
 ]
 
 [project.optional-dependencies]

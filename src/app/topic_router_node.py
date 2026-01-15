@@ -4,7 +4,7 @@ from typing import List, Optional, TypedDict
 
 import numpy as np
 import pandas as pd
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from .lapa_config import get_lapa_embeddings
 from sklearn.metrics.pairwise import cosine_similarity
 
 # --- Pre-load data and models for efficiency ---
@@ -23,13 +23,7 @@ except FileNotFoundError:
     TOC_DF = pd.DataFrame()  # Empty dataframe to prevent crashes
 
 # Initialize the embedding model once
-if os.environ.get("GOOGLE_API_KEY"):
-    EMBEDDING_MODEL = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-else:
-    print(
-        "WARNING: GOOGLE_API_KEY not set. Topic router will not be able to embed queries."
-    )
-    EMBEDDING_MODEL = None
+EMBEDDING_MODEL = get_lapa_embeddings()
 
 
 # --- Define State structures ---

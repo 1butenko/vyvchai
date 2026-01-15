@@ -3,15 +3,11 @@ import re
 from typing import List, Literal, TypedDict
 
 from langchain_core.messages import HumanMessage
-from langchain_google_genai import ChatGoogleGenerativeAI
+from .lapa_config import get_lapa_llm
 
 # --- Pre-load the LLM for solving ---
 # It can be the same model, but used with a different, specialized prompt.
-if os.environ.get("GOOGLE_API_KEY"):
-    SOLVER_LLM = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.0)
-else:
-    SOLVER_LLM = None
-    print("WARNING: GOOGLE_API_KEY not set. Solver node will not work.")
+SOLVER_LLM = get_lapa_llm(temperature=0.0)
 
 # --- Define State & Data Structures ---
 

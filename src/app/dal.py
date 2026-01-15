@@ -1,5 +1,5 @@
-import schemas
-from models.models_db import Class, Question, Student, Teacher, Test
+from . import schemas
+from .models.models_db import Class, Question, Student, Teacher, Test
 from sqlalchemy.orm import Session
 
 

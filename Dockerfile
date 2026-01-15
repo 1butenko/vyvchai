@@ -23,7 +23,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 COPY src/ ./src/
 COPY main.py create_dummy_data.py test_agent.py run_agent_test.py ./
 COPY alembic/ ./alembic/
-COPY data/ ./data/
+
 
 # Create necessary directories
 RUN mkdir -p /app/data /app/logs

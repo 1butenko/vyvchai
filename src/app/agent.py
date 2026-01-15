@@ -4,7 +4,7 @@ import os
 from typing import Annotated, List, Literal, Optional, TypedDict
 
 from langchain_core.messages import AnyMessage, HumanMessage
-from langchain_google_genai import ChatGoogleGenerativeAI
+from .lapa_config import get_lapa_llm
 from langgraph.graph import END, StateGraph
 
 from .learner_modeling import MasteryVector, learner_modeling_node
@@ -38,7 +38,7 @@ class AgentState(TypedDict):
 
 
 # --- 2. Initialize the LLM ---
-llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.7)
+llm = get_lapa_llm(temperature=0.7)
 
 # --- 3. Define Graph Nodes ---
 

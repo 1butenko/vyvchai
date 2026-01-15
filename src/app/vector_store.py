@@ -2,7 +2,7 @@ import os
 
 from langchain_core.documents import Document
 from langchain_core.vectorstores import InMemoryVectorStore
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from .lapa_config import get_lapa_embeddings
 
 from .data_loader import load_textbook_pages
 
@@ -15,8 +15,9 @@ def create_vector_store():
         An InMemoryVectorStore instance.
     """
     # Ensure the GOOGLE_API_KEY is set
-    if "GOOGLE_API_KEY" not in os.environ:
-        raise ValueError("GOOGLE_API_KEY environment variable not set.")
+    # Ensure the GOOGLE_API_KEY is set - DEPRECATED for Lapa
+    # if "GOOGLE_API_KEY" not in os.environ:
+    #     raise ValueError("GOOGLE_API_KEY environment variable not set.")
 
     # Load the textbook pages
     pages_df = load_textbook_pages()
@@ -33,7 +34,7 @@ def create_vector_store():
         documents.append(doc)
 
     # Initialize the embedding model
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+    embeddings = get_lapa_embeddings()
 
     # Create the in-memory vector store
     vector_store = InMemoryVectorStore.from_documents(documents, embedding=embeddings)

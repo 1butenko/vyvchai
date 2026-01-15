@@ -5,11 +5,25 @@ Run this script to test the agent functionality in Docker
 """
 
 import asyncio
-
+import os
 import httpx
+from urllib.parse import urlparse
+from opentelemetry import trace as trace_api
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from openinference.instrumentation.langchain import LangChainInstrumentor
 
 # Test configuration
 FASTAPI_URL = "http://localhost:8000"
+
+# Setup OpenTelemetry
+endpoint = os.getenv("PHOENIX_COLLECTOR_ENDPOINT", "http://phoenix:6006/v1/traces")
+tracer_provider = TracerProvider()
+tracer_provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(endpoint)))
+trace_api.set_tracer_provider(tracer_provider)
+LangChainInstrumentor().instrument()
+
 AGENT_TEST_DATA = {
     "tenant_id": "test-tenant-001",
     "user_query": (
@@ -87,14 +101,23 @@ async def test_database_connection():
     try:
         # Try to connect to PostgreSQL
         import asyncpg
-
-        conn = await asyncpg.connect(
-            user="user",
-            password="password",
-            database="vyvchai",
-            host="localhost",
-            port=5432,
-        )
+        
+        # Parse DATABASE_URL if available, otherwise default to explicit params
+        db_url = os.getenv("DATABASE_URL")
+        
+        if db_url:
+            print(f"   Connecting using DATABASE_URL: {db_url}")
+            conn = await asyncpg.connect(db_url)
+        else:
+            # Fallback for local testing if env var not set
+            conn = await asyncpg.connect(
+                user="user",
+                password="password",
+                database="vyvchai",
+                host="localhost",
+                port=5432,
+            )
+            
         await conn.close()
         print("✅ Database connection successful")
         return True
@@ -112,7 +135,18 @@ async def test_redis_connection():
     try:
         import redis  # type: ignore
 
-        r = redis.Redis(host="localhost", port=6379, decode_responses=True)
+        # Parse REDIS_URL or use separate env vars
+        redis_url = os.getenv("REDIS_URL")
+        host = "localhost"
+        port = 6379
+        
+        if redis_url:
+             # Basic check to see if we should parse it or just use it directly
+             # redis-py's from_url handles redis:// strings
+             r = redis.Redis.from_url(redis_url, decode_responses=True)
+        else:
+             r = redis.Redis(host=host, port=port, decode_responses=True)
+
         r.ping()
         print("✅ Redis connection successful")
         return True
@@ -130,7 +164,8 @@ async def test_qdrant_connection():
     try:
         from qdrant_client import QdrantClient
 
-        client = QdrantClient(url="http://localhost:6333")
+        qdrant_url = os.getenv("QDRANT_URL", "http://localhost:6333")
+        client = QdrantClient(url=qdrant_url)
         # Try to list collections
         _collections = client.get_collections()
         print("✅ Qdrant connection successful")
@@ -147,10 +182,14 @@ async def test_phoenix_connection():
     """Test Phoenix UI connectivity"""
     print("\n🔥 Testing Phoenix UI connection...")
     try:
+        phoenix_host = os.getenv("PHOENIX_HOST", "localhost")
+        phoenix_port = os.getenv("PHOENIX_PORT", "6006")
+        url = f"http://{phoenix_host}:{phoenix_port}"
+        
         async with httpx.AsyncClient(timeout=5.0) as client:
-            response = await client.get("http://localhost:6006")
+            response = await client.get(url)
             if response.status_code == 200:
-                print("✅ Phoenix UI is accessible")
+                print(f"✅ Phoenix UI is accessible at {url}")
                 return True
             else:
                 print(f"⚠️ Phoenix UI returned status {response.status_code}")
@@ -201,4 +240,8 @@ async def run_comprehensive_test():
 
 
 if __name__ == "__main__":
-    asyncio.run(run_comprehensive_test())
+    success = asyncio.run(run_comprehensive_test())
+    
+    # Explicit exit code for CI/CD or scripts
+    import sys
+    sys.exit(0 if success else 1)

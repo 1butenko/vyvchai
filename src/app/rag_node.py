@@ -5,12 +5,13 @@ from .vector_store import create_vector_store
 
 # Initialize the vector store once when the module is loaded.
 print("Initializing vector store for RAG node...")
-if os.environ.get("GOOGLE_API_KEY"):
-    VECTOR_STORE = create_vector_store()
+# Initialize the vector store once when the module is loaded.
+print("Initializing vector store for RAG node...")
+VECTOR_STORE = create_vector_store()
+if VECTOR_STORE:
     print("Vector store initialized.")
 else:
-    VECTOR_STORE = None
-    print("WARNING: GOOGLE_API_KEY not set. RAG node will not work.")
+    print("WARNING: Vector store initialization failed.")
 
 
 def retrieve_context_node(state: dict) -> dict:

@@ -69,3 +69,15 @@ class ClassResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class AgentChatRequest(BaseModel):
+    message: str
+    student_id: int = 123
+    grade: int = 8
+    global_discipline_id: int = 72
+
+
+class AgentChatResponse(BaseModel):
+    response: str
+

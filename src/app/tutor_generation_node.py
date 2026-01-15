@@ -3,20 +3,15 @@ import os
 from typing import List, TypedDict
 
 from langchain_core.messages import HumanMessage
-from langchain_google_genai import ChatGoogleGenerativeAI
+from .lapa_config import get_lapa_llm
 
 from .vector_store import create_vector_store
 
 # --- Pre-load dependencies ---
-if os.environ.get("GOOGLE_API_KEY"):
-    GENERATOR_LLM = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.7)
-    # Enable JSON output mode for structured generation
-    GENERATOR_LLM = GENERATOR_LLM.bind(response_mime_type="application/json")
-    VECTOR_STORE = create_vector_store()
-else:
-    GENERATOR_LLM = None
-    VECTOR_STORE = None
-    print("WARNING: GOOGLE_API_KEY not set. Generation node will not work.")
+GENERATOR_LLM = get_lapa_llm(temperature=0.7)
+# Enable JSON output mode for structured generation - REMOVED for Lapa
+# GENERATOR_LLM = GENERATOR_LLM.bind(response_mime_type="application/json")
+VECTOR_STORE = create_vector_store()
 
 
 # --- Data Structures for Structured Output ---
